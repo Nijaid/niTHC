@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 from math import sqrt
 from scidata.utils import locate
 import argparse
+import re
+import tempfile
 
 parser = argparse.ArgumentParser(description=
         "Plot the angular velocity of Carpet data \
@@ -33,8 +35,11 @@ else:
 sys.stderr.write("All done!")
 
 def plot(plane):
+    # Create directory if non-existing
+    if not os.path.exists(plane):
+        os.mkdir(plane)
     # Find the velocity files
-    os.chdir('../')
+    os.chdir('../../')
     xlist = locate('vel[0].{}.h5'.format(plane))
     print(xlist)
     ylist = locate('vel[1].{}.h5'.format(plane))
@@ -49,6 +54,10 @@ def plot(plane):
 
     sys.stderr.write("velphi {}-plane\n".format(plane))
     for reflevel in reflevels:
+        pdir = "{0}/r{1}".format(plane,reflevel)
+        if not os.path.exists(pdir):
+            os.mkdir(pdir)
+
         sys.stderr.write("Plotting reflevel {} ... ".format(reflevel))
         # Find the max and min velocities
         vamax = []
@@ -88,6 +97,29 @@ def plot(plane):
             plt.xticks(X, tics)
             plt.yticks(Y, tics)
 
+            t = xset.get_dataset(iteration=it).attrs["time"]
+            plt.title("time = %10.2f" %t)
+
+            plt.savefig("{0}/{1}.png".format(pdir, it))
+
+        # Make movie
+        sys.stderr.write("making movie ... ")
+        ret = os.getcwd()
+        os.chdir(pdir)
+        ldir   = tempfile.mkdtemp()
+        fnames = os.listdir(dirname)
+        fnames = [f for f in fnames if re.match(r".*\.png$", f) is not None]
+        fnames = sorted(fnames)
+
+        for i in range(len(fnames)):
+            os.symlink(os.getcwd() + "/" + dirname + "/" + fnames[i],
+                    ldir + "/%05d.png" % i)
+        os.system("ffmpeg -y -i {0}/%05d.png -vcodec mpeg4 -qscale 1 {1}/movie.mp4"
+            " &> /dev/null".format(ldir,dirname))
+        for i in range(len(fnames)):
+            os.unlink(ldir + "/%05d.png" % i)
+        os.rmdir(ldir)
+
         sys.stderr.write("done!\n")
 
 def get_velphi(xset, yset, it, reflevel):
@@ -119,7 +151,7 @@ def get_velphi(xset, yset, it, reflevel):
     # Eliminate the 'infinity' at the center
     va[int(center[0])][int(center[1])] = 0.0
 
-    return va, dx, dy
+    return va.T, dx, dy
 
 def get_ticks(reflevel):
     if reflevel==0:
