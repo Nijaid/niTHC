@@ -20,20 +20,6 @@ parser.add_argument("plane", type=str, help=
 
 args = parser.parse_args()
 
-#if len(args) == 0:
-#    parser.error("No plane specified")
-
-plane = args.plane
-planes = ["xy", "xz", "yz"]
-if plane=='all':
-    sys.stderr.write("Plotting for all planes ... \n")
-    for p in planes:
-        plot(p)
-else:
-    assert plane in planes
-    plot(plane)
-sys.stderr.write("All done!")
-
 def plot(plane):
     # Create directory if non-existing
     if not os.path.exists(plane):
@@ -54,6 +40,7 @@ def plot(plane):
     yset = h5.dataset(ylist)
 
     sys.stderr.write("velphi {}-plane\n".format(plane))
+    
     for reflevel in reflevels:
         pdir = "{0}/r{1}".format(plane,reflevel)
         if not os.path.exists(pdir):
@@ -105,7 +92,7 @@ def plot(plane):
 
         # Make movie
         sys.stderr.write("making movie ... ")
-        
+
         os.chdir(pdir)
         ldir   = tempfile.mkdtemp()
         fnames = os.listdir(dirname)
@@ -120,7 +107,7 @@ def plot(plane):
         for i in range(len(fnames)):
             os.unlink(ldir + "/%05d.png" % i)
         os.rmdir(ldir)
-	os.chdir(ret)
+	    os.chdir(ret)
 
         sys.stderr.write("done!\n")
 
@@ -174,3 +161,14 @@ def get_ticks(reflevel):
         raise Exception('This is not a ticked reflevel')
 
     return np.int_(np.concatenate((-tics[::-1], [0], tics)))
+
+plane = args.plane
+planes = ["xy", "xz", "yz"]
+if plane=='all':
+    sys.stderr.write("Plotting for all planes ... \n")
+    for p in planes:
+        plot(p)
+else:
+    assert plane in planes
+    plot(plane)
+sys.stderr.write("All done!")
