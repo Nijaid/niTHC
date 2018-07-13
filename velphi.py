@@ -20,8 +20,8 @@ parser.add_argument("plane", type=str, help=
 
 args = parser.parse_args()
 
-if len(args) == 0:
-    parser.error("No plane specified")
+#if len(args) == 0:
+#    parser.error("No plane specified")
 
 plane = args.plane
 planes = ["xy", "xz", "yz"]
@@ -39,12 +39,13 @@ def plot(plane):
     if not os.path.exists(plane):
         os.mkdir(plane)
     # Find the velocity files
+    ret = os.getcwd()
     os.chdir('../../')
     xlist = locate('vel[0].{}.h5'.format(plane))
     print(xlist)
     ylist = locate('vel[1].{}.h5'.format(plane))
     print(ylist)
-    os.chdir('analysis')
+    os.chdir(ret)
 
     reflevels = (0,1,2,3,4,5,6)
 
@@ -104,7 +105,7 @@ def plot(plane):
 
         # Make movie
         sys.stderr.write("making movie ... ")
-        ret = os.getcwd()
+        
         os.chdir(pdir)
         ldir   = tempfile.mkdtemp()
         fnames = os.listdir(dirname)
@@ -119,6 +120,7 @@ def plot(plane):
         for i in range(len(fnames)):
             os.unlink(ldir + "/%05d.png" % i)
         os.rmdir(ldir)
+	os.chdir(ret)
 
         sys.stderr.write("done!\n")
 
