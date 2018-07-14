@@ -167,7 +167,7 @@ def get_ticks(reflevel):
     elif reflevel==5:
         tic = np.array([10, 20])
     elif reflevel==6:
-        tic = np.array([4, 8, 12, 14])
+        tic = np.array([4, 8, 12])
     else:
         raise Exception('This is not a ticked reflevel')
 
