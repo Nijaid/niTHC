@@ -18,12 +18,13 @@ parser = argparse.ArgumentParser(description=
          around the grid's center.")
 parser.add_argument("plane", type=str, help=
         "Plane centered at the origin. 'all' plots all three planes.")
-parser.add_argument("--reflevel", default='all')
+parser.add_argument("--reflevel", default='all',
+        help="Choose reflevel to plot. Default are 0-6.")
 
 args = parser.parse_args()
 
 def plot(plane, ref):
-    # Create directory if non-existing
+    # Create plane directory if non-existing
     if not os.path.exists(plane):
         os.mkdir(plane)
 
@@ -46,22 +47,24 @@ def plot(plane, ref):
     yset = h5.dataset(ylist)
 
     sys.stderr.write("\nvelphi {}-plane\n".format(plane))
-    
+
+    # Find the max and min velocities of the finest reflevel
+    sys.stderr.write("Finding the min and max ... ")
+    vamax = []
+    vamin = []
+    for it in xset.iterations:
+        va = get_velphi(xset, yset, it, 6)[0]
+        vamax.append(np.max(va))
+        vamin.append(np.min(va))
+    vamax = max(vamax)
+    vamin = min(vamin)
+    sys.stderr.write("done!\n")
+
     for reflevel in reflevels:
         pdir = "{0}/r{1}".format(plane,reflevel)
+        # Make directory for reflevel
         if not os.path.exists(pdir):
             os.mkdir(pdir)
-
-        sys.stderr.write("reflevel {}: finding the min and max ... ".format(reflevel))
-        # Find the max and min velocities
-        vamax = []
-        vamin = []
-        for it in xset.iterations:
-            va = get_velphi(xset, yset, it, reflevel)[0]
-            vamax.append(np.max(va))
-            vamin.append(np.min(va))
-        vamax = max(vamax)
-        vamin = min(vamin)
 
         # Plot each iteration
         sys.stderr.write("plotting ... ")
@@ -179,4 +182,4 @@ if plane=='all':
 else:
     assert plane in planes
     plot(plane, ref)
-sys.stderr.write("All done!")
+sys.stderr.write("All done!\n")
