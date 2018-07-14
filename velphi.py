@@ -61,13 +61,14 @@ def plot(plane, ref):
     sys.stderr.write("done!\n")
 
     for reflevel in reflevels:
+        sys.stderr.write("Reflevel {}: ".format(reflevel))
         pdir = "{0}/r{1}".format(plane,reflevel)
         # Make directory for reflevel
         if not os.path.exists(pdir):
             os.mkdir(pdir)
 
         # Plot each iteration
-        sys.stderr.write("plotting ... ")
+        sys.stderr.write("Plotting ... ")
         for it in xset.iterations:
             va, center, dx, dy = get_velphi(xset, yset, it, reflevel)
 
