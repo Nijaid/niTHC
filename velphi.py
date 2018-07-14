@@ -1,4 +1,5 @@
-
+import matplotlib
+matplotlib.use("Agg")
 import numpy as np
 import os
 import sys
@@ -17,49 +18,55 @@ parser = argparse.ArgumentParser(description=
          around the grid's center.")
 parser.add_argument("plane", type=str, help=
         "Plane centered at the origin. 'all' plots all three planes.")
+parser.add_argument("--reflevel", default='all')
 
 args = parser.parse_args()
 
-def plot(plane):
+def plot(plane, ref):
     # Create directory if non-existing
     if not os.path.exists(plane):
         os.mkdir(plane)
+
     # Find the velocity files
     ret = os.getcwd()
     os.chdir('../../')
     xlist = locate('vel[0].{}.h5'.format(plane))
-    print(xlist)
+    #print(xlist)
     ylist = locate('vel[1].{}.h5'.format(plane))
-    print(ylist)
+    #print(ylist)
     os.chdir(ret)
 
-    reflevels = (0,1,2,3,4,5,6)
+    if ref=='all':
+        reflevels = (0,1,2,3,4,5,6)
+    else:
+        reflevels = [int(ref)]
 
     # Read the metadata
     xset = h5.dataset(xlist)
     yset = h5.dataset(ylist)
 
-    sys.stderr.write("velphi {}-plane\n".format(plane))
+    sys.stderr.write("\nvelphi {}-plane\n".format(plane))
     
     for reflevel in reflevels:
         pdir = "{0}/r{1}".format(plane,reflevel)
         if not os.path.exists(pdir):
             os.mkdir(pdir)
 
-        sys.stderr.write("Plotting reflevel {} ... ".format(reflevel))
+        sys.stderr.write("reflevel {}: finding the min and max ... ".format(reflevel))
         # Find the max and min velocities
         vamax = []
         vamin = []
         for it in xset.iterations:
-            va, = get_velphi(xset, yset, it, reflevel)
+            va = get_velphi(xset, yset, it, reflevel)[0]
             vamax.append(np.max(va))
             vamin.append(np.min(va))
         vamax = max(vamax)
         vamin = min(vamin)
 
         # Plot each iteration
+        sys.stderr.write("plotting ... ")
         for it in xset.iterations:
-            va, dx, dy = get_velphi(xset, yset, it, reflevel)
+            va, center, dx, dy = get_velphi(xset, yset, it, reflevel)
 
             # Set the tick marks for the axes
             tics = get_ticks(reflevel)
@@ -68,7 +75,7 @@ def plot(plane):
 
             # Plot
             plt.figure(figsize=(6,6))
-            plt.imshow(va, interpolation=None,  origin='lower',
+            plt.imshow(va.T, interpolation=None,  origin='lower',
                         vmin=vamin, vmax=vamax)
             cbar = plt.colorbar()
             cbar.set_label(r'$\omega$')
@@ -95,19 +102,19 @@ def plot(plane):
 
         os.chdir(pdir)
         ldir   = tempfile.mkdtemp()
-        fnames = os.listdir(dirname)
+        fnames = os.listdir('./')
         fnames = [f for f in fnames if re.match(r".*\.png$", f) is not None]
         fnames = sorted(fnames)
 
         for i in range(len(fnames)):
-            os.symlink(os.getcwd() + "/" + dirname + "/" + fnames[i],
+            os.symlink(os.getcwd() + "/" + fnames[i],
                     ldir + "/%05d.png" % i)
-        os.system("ffmpeg -y -i {0}/%05d.png -vcodec mpeg4 -qscale 1 {1}/movie.mp4"
-            " &> /dev/null".format(ldir,dirname))
+        os.system("ffmpeg -y -i {}/%05d.png -vcodec mpeg4 -qscale 1 movie.mp4"
+            " &> /dev/null".format(ldir))
         for i in range(len(fnames)):
             os.unlink(ldir + "/%05d.png" % i)
         os.rmdir(ldir)
-	    os.chdir(ret)
+        os.chdir(ret)
 
         sys.stderr.write("done!\n")
 
@@ -140,7 +147,7 @@ def get_velphi(xset, yset, it, reflevel):
     # Eliminate the 'infinity' at the center
     va[int(center[0])][int(center[1])] = 0.0
 
-    return va.T, dx, dy
+    return va, center, dx, dy
 
 def get_ticks(reflevel):
     if reflevel==0:
@@ -160,15 +167,16 @@ def get_ticks(reflevel):
     else:
         raise Exception('This is not a ticked reflevel')
 
-    return np.int_(np.concatenate((-tics[::-1], [0], tics)))
+    return np.int_(np.concatenate((-tic[::-1], [0], tic)))
 
 plane = args.plane
+ref = args.reflevel
 planes = ["xy", "xz", "yz"]
 if plane=='all':
     sys.stderr.write("Plotting for all planes ... \n")
     for p in planes:
-        plot(p)
+        plot(p,ref)
 else:
     assert plane in planes
-    plot(plane)
+    plot(plane, ref)
 sys.stderr.write("All done!")
