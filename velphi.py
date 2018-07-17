@@ -7,7 +7,6 @@ import h5py
 import scidata
 import scidata.carpet.hdf5 as h5
 import matplotlib.pyplot as plt
-from math import sqrt
 from scidata.utils import locate
 import argparse
 import re
@@ -134,6 +133,7 @@ def get_velphi(xset, yset, it, reflevel):
     col = np.size(vx,1)
     center = np.array([row, col])*0.5 # Grid center
 
+    # Physical space between points
     assert np.all([xgrid.delta,ygrid.delta]), 'Grid spacing is not equal'
     dx = xgrid.delta[0]
     dy = ygrid.delta[1]
@@ -143,10 +143,12 @@ def get_velphi(xset, yset, it, reflevel):
     # Calculate the angular velocity at each point
     for i in range(row):
         for j in range(col):
-            r = sqrt((dx*(i - center[0]))**2 + (dy*(j - center[1]))**2)
-            if r==0:
-                r += 1.0e-10 # Avoid division by zero
-            va[i][j] = sqrt(vx[i][j]**2 + vy[i][j]**2) / r
+            x = dx*(i - center[0])
+            y = dy*(j - center[1])
+            r2 = x*x + y*y
+            if r2==0:
+                r2 += 1.0e-10 # Avoid division by zero
+            va[i][j] = (x*vy[i][j] - y*vx[i][j]) / r2
 
     # Eliminate the 'infinity' at the center
     va[int(center[0])][int(center[1])] = 0.0
@@ -167,7 +169,7 @@ def get_ticks(reflevel):
     elif reflevel==5:
         tic = np.array([10, 20])
     elif reflevel==6:
-        tic = np.array([4, 8, 12, 14])
+        tic = np.array([4, 8, 12])
     else:
         raise Exception('This is not a ticked reflevel')
 
