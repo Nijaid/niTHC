@@ -52,7 +52,7 @@ def plot(plane, ref):
     vamax = []
     vamin = []
     for it in xset.iterations:
-        va = get_velphi(xset, yset, it, 6)[0]
+        va = get_velphi(xset, yset, it, 6)
         vamax.append(np.max(va))
         vamin.append(np.min(va))
     vamax = max(vamax)
@@ -60,29 +60,39 @@ def plot(plane, ref):
     sys.stderr.write("done!\n")
 
     for reflevel in reflevels:
-        sys.stderr.write("Reflevel {}: ".format(reflevel))
+        sys.stderr.write("reflevel {}: ".format(reflevel))
         pdir = "{0}/r{1}".format(plane,reflevel)
         # Make directory for reflevel
         if not os.path.exists(pdir):
             os.mkdir(pdir)
 
+        # Set axes
+        axis = [[]]*4
+        pgrid = [None for i in range(len(xset.iterations))]
+        for i in range(len(xset.iterations)):
+            grid = xset.get_reflevel(iteration=xset.iterations[i],
+                                     reflevel=reflevel)
+            pgrid[i] = grid.mesh()
+        axis[0] = np.min(pgrid[0])
+        axis[1] = np.max(pgrid[0])
+        axis[2] = np.min(pgrid[1])
+        axis[3] = np.max(pgrid[1])
+
         # Plot each iteration
         sys.stderr.write("Plotting ... ")
-        for it in xset.iterations:
-            va, center, dx, dy = get_velphi(xset, yset, it, reflevel)
-
-            # Set the tick marks for the axes
-            tics = get_ticks(reflevel)
-            X = center[0] + (tics / dx)
-            Y = center[1] + (tics / dy)
+        for i in range(len(xset.iterations)):
+            it = xset.iterations[i]
+            va = get_velphi(xset, yset, it, reflevel)
+            dgrid = xset.get_reflevel(iteration=it, reflevel=reflevel).mesh()
 
             # Plot
             plt.figure()
-            plt.imshow(va.T, interpolation=None,  origin='lower',
-                        cmap='jet', vmin=vamin, vmax=vamax)
-            cbar = plt.colorbar()
+            ax = plt.axes()
+            plot = plt.pcolormesh(dgrid[0], dgrid[1], va, cmap='jet',
+                                  vmin=vamin, vmax=vamax)
+            cbar = plt.colorbar(plot)
             cbar.set_label(r'$\omega$')
-            plt.clim=(0.0, np.max(va))
+            plt.clim=(vamin, vamax)
             if plane=='xy':
                 plt.xlabel(r'x [M$_{\odot}$]')
                 plt.ylabel(r'y [M$_{\odot}$]')
@@ -92,8 +102,10 @@ def plot(plane, ref):
             else:
                 plt.xlabel(r'y [M$_{\odot}$]')
                 plt.ylabel(r'z [M$_{\odot}$]')
-            plt.xticks(X, tics)
-            plt.yticks(Y, tics)
+            ax.axis(axis)
+            ax.set_aspect('equal', 'datalim')
+            # plt.xticks(X, tics)
+            # plt.yticks(Y, tics)
 
             t = xset.get_dataset(iteration=it).attrs["time"]
             plt.title("time = %10.2f" %t)
@@ -131,29 +143,12 @@ def get_velphi(xset, yset, it, reflevel):
     assert vx.shape==vy.shape, 'Shapes are not equal'
     row = np.size(vx,0)
     col = np.size(vx,1)
-    center = np.array([row, col])*0.5 # Grid center
 
-    # Physical space between points
-    assert np.all([xgrid.delta,ygrid.delta]), 'Grid spacing is not equal'
-    dx = xgrid.delta[0]
-    dy = ygrid.delta[1]
+    x = xgrid.mesh()[0]
+    y = xgrid.mesh()[1]
+    r = x*x + y*y
 
-    va = np.full((row,col), np.NAN, dtype=np.float32)
-
-    # Calculate the angular velocity at each point
-    for i in range(row):
-        for j in range(col):
-            x = dx*(i - center[0])
-            y = dy*(j - center[1])
-            r2 = x*x + y*y
-            if r2==0:
-                r2 += 1.0e-10 # Avoid division by zero
-            va[i][j] = (x*vy[i][j] - y*vx[i][j]) / r2
-
-    # Eliminate the 'infinity' at the center
-    va[int(center[0])][int(center[1])] = 0.0
-
-    return va, center, dx, dy
+    return(np.divide((x*vy)-(y*vx),r))
 
 def get_ticks(reflevel):
     if reflevel==0:
