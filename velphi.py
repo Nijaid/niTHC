@@ -77,9 +77,9 @@ def plot(plane, ref):
             Y = center[1] + (tics / dy)
 
             # Plot
-            plt.figure(figsize=(6,6))
+            plt.figure()
             plt.imshow(va.T, interpolation=None,  origin='lower',
-                        vmin=vamin, vmax=vamax)
+                        cmap='jet', vmin=vamin, vmax=vamax)
             cbar = plt.colorbar()
             cbar.set_label(r'$\omega$')
             plt.clim=(0.0, np.max(va))
