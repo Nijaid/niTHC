@@ -64,7 +64,7 @@ def plot(plane, ref):
     sys.stderr.write("done!\n")
 
     # Get the apparent horizons
-    horizons = bh(root=d_dir)
+    horizons = bh.BHHorizons(root=d_dir)
 
     for reflevel in reflevels:
         sys.stderr.write("reflevel {}: ".format(reflevel))
@@ -103,8 +103,8 @@ def plot(plane, ref):
 
             # Plot the horizon
             horizon = horizons.horizon(plane, it)
-            art = Ellipse(xy=shape.center, width=shape.diam[1],
-                    height=shape.diam[0], edgecolor='black',
+            art = Ellipse(xy=horizon.center, width=horizon.diam[1],
+                    height=horizon.diam[0], edgecolor='black',
                     facecolor='black', alpha=1.0)
             ax.add_artist(art)
 
