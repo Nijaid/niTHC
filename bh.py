@@ -21,7 +21,7 @@ class BHHorizons(object):
 
     def horizon(self, plane, it):
         axis = {"xy": 2, "xz": 1, "yz": 0}[plane]
-        if it in self.horizons:
+        if it in self.horizons.keys():
             h = self.horizons[it]
             return(h.slice(s=0., axis=axis))
         else:

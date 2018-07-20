@@ -64,7 +64,7 @@ def plot(plane, ref):
     sys.stderr.write("done!\n")
 
     # Get the apparent horizons
-    horizons = bh.BHHorizons(root=d_dir)
+    horizons = bh.BHHorizons(root=d_dir).horizons
 
     for reflevel in reflevels:
         sys.stderr.write("reflevel {}: ".format(reflevel))
@@ -102,10 +102,12 @@ def plot(plane, ref):
             plt.clim=(vamin, vamax)
 
             # Plot the horizon
-            if horizons[it] is not None:
-                horizon = horizons.horizon(plane, it)
-                art = Ellipse(xy=horizon.center, width=horizon.diam[1],
-                        height=horizon.diam[0], edgecolor='black',
+            if it in horizons.keys():
+                horizon = horizons[it]
+		hax = {"xy": 2, "xz": 1, "yz": 0}[plane]
+		hslice = horizon.slice(s=0., axis=hax)
+                art = Ellipse(xy=hslice.center, width=hslice.diam[1],
+                        height=hslice.diam[0], edgecolor='black',
                         facecolor='black', alpha=1.0)
                 ax.add_artist(art)
 
