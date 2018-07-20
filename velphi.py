@@ -64,6 +64,7 @@ def plot(plane, ref):
     sys.stderr.write("done!\n")
 
     # Get the apparent horizons
+    hax = {"xy": 2, "xz": 1, "yz": 0}[plane]
     horizons = bh.BHHorizons(root=d_dir).horizons
 
     for reflevel in reflevels:
@@ -104,8 +105,7 @@ def plot(plane, ref):
             # Plot the horizon
             if it in horizons.keys():
                 horizon = horizons[it]
-		hax = {"xy": 2, "xz": 1, "yz": 0}[plane]
-		hslice = horizon.slice(s=0., axis=hax)
+        		hslice = horizon.slice(s=0., axis=hax)
                 art = Ellipse(xy=hslice.center, width=hslice.diam[1],
                         height=hslice.diam[0], edgecolor='black',
                         facecolor='black', alpha=1.0)
