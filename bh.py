@@ -18,3 +18,11 @@ class BHHorizons(object):
                     d = (float(l_[i+1]) - float(l_[i])
                             for i in [14, 16, 18])
                     self.horizons[it] = Ellipsoid(c, d)
+
+    def horizon(self, plane, it):
+        axis = {"xy": 2, "xz": 1, "yz": 0}[plane]
+        if it in self.horizons:
+            h = self.horizons[it]
+            return(h.slice(s=0., axis=axis))
+        else:
+            return(None)

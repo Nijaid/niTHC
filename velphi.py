@@ -5,9 +5,12 @@ import os
 import sys
 import h5py
 import scidata
+import bh
 import scidata.carpet.hdf5 as h5
-import matplotlib.pyplot as plt
 from scidata.utils import locate
+import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
+from scivis import utils
 import argparse
 import re
 import tempfile
@@ -30,6 +33,7 @@ def plot(plane, ref):
     # Find the velocity files
     ret = os.getcwd()
     os.chdir('../../')
+    d_dir = os.getcwd()
     xlist = locate('vel[0].{}.h5'.format(plane))
     #print(xlist)
     ylist = locate('vel[1].{}.h5'.format(plane))
@@ -58,6 +62,9 @@ def plot(plane, ref):
     vamax = max(vamax)
     vamin = min(vamin)
     sys.stderr.write("done!\n")
+
+    # Get the apparent horizons
+    horizons = bh(root=d_dir)
 
     for reflevel in reflevels:
         sys.stderr.write("reflevel {}: ".format(reflevel))
@@ -93,6 +100,14 @@ def plot(plane, ref):
             cbar = plt.colorbar(plot)
             cbar.set_label(r'$\omega$')
             plt.clim=(vamin, vamax)
+
+            # Plot the horizon
+            horizon = horizons.horizon(plane, it)
+            art = Ellipse(xy=shape.center, width=shape.diam[1],
+                    height=shape.diam[0], edgecolor='black',
+                    facecolor='black', alpha=1.0)
+            ax.add_artist(art)
+
             if plane=='xy':
                 plt.xlabel(r'x [M$_{\odot}$]')
                 plt.ylabel(r'y [M$_{\odot}$]')
@@ -104,8 +119,6 @@ def plot(plane, ref):
                 plt.ylabel(r'z [M$_{\odot}$]')
             ax.axis(axis)
             ax.set_aspect('equal', 'datalim')
-            # plt.xticks(X, tics)
-            # plt.yticks(Y, tics)
 
             t = xset.get_dataset(iteration=it).attrs["time"]
             plt.title("time = %10.2f" %t)
@@ -149,26 +162,6 @@ def get_velphi(xset, yset, it, reflevel):
     r = x*x + y*y
 
     return(np.divide((x*vy)-(y*vx),r))
-
-def get_ticks(reflevel):
-    if reflevel==0:
-        tic = np.array([250, 500, 750, 1000])
-    elif reflevel==1:
-        tic = np.array([75, 150, 225, 300, 375])
-    elif reflevel==2:
-        tic = np.array([50, 100, 150, 200])
-    elif reflevel==3:
-        tic = np.array([25, 50, 75, 100])
-    elif reflevel==4:
-        tic = np.array([10, 20, 30, 40, 50])
-    elif reflevel==5:
-        tic = np.array([10, 20])
-    elif reflevel==6:
-        tic = np.array([4, 8, 12])
-    else:
-        raise Exception('This is not a ticked reflevel')
-
-    return np.int_(np.concatenate((-tic[::-1], [0], tic)))
 
 plane = args.plane
 ref = args.reflevel
