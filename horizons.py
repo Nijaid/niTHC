@@ -12,9 +12,9 @@ class BHHorizons(object):
                         continue
                     l_ = line.split()
                     it = int(l_[0])
-                    if self.horizons.has_key(it):
+                    if it in self.horizons:
                         continue
-                    c = (float(dl_[i]) for i in [2,3,4])
-                    d = (float(dl_[i+1]) - float(l_[i])
+                    c = (float(l_[i]) for i in [2,3,4])
+                    d = (float(l_[i+1]) - float(l_[i])
                             for i in [14, 16, 18])
                     self.horizons[it] = Ellipsoid(c, d)
