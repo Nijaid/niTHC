@@ -102,11 +102,12 @@ def plot(plane, ref):
             plt.clim=(vamin, vamax)
 
             # Plot the horizon
-            horizon = horizons.horizon(plane, it)
-            art = Ellipse(xy=horizon.center, width=horizon.diam[1],
-                    height=horizon.diam[0], edgecolor='black',
-                    facecolor='black', alpha=1.0)
-            ax.add_artist(art)
+            if horizons[it] is not None:
+                horizon = horizons.horizon(plane, it)
+                art = Ellipse(xy=horizon.center, width=horizon.diam[1],
+                        height=horizon.diam[0], edgecolor='black',
+                        facecolor='black', alpha=1.0)
+                ax.add_artist(art)
 
             if plane=='xy':
                 plt.xlabel(r'x [M$_{\odot}$]')
