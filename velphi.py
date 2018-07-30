@@ -20,8 +20,8 @@ parser = argparse.ArgumentParser(description=
          around the grid's center.")
 parser.add_argument("plane", type=str, help=
         "Plane centered at the origin. 'all' plots all three planes.")
-parser.add_argument("--reflevel", default='all',
-        help="Choose reflevel to plot. Default are 0-6.")
+parser.add_argument("--reflevel", nargs='*', type=int,
+        help="Choose reflevel to plot. Default are all levels.")
 
 args = parser.parse_args()
 
@@ -40,14 +40,14 @@ def plot(plane, ref):
     #print(ylist)
     os.chdir(ret)
 
-    if ref=='all':
-        reflevels = (0,1,2,3,4,5,6)
-    else:
-        reflevels = [int(ref)]
-
     # Read the metadata
     xset = h5.dataset(xlist)
     yset = h5.dataset(ylist)
+
+    reflevels = list(set(xset.select_reflevels(iteration=xset.iterations[0])))
+    if ref=='all':
+    else:
+        reflevels = [r for r in ref if r in reflevels]
 
     sys.stderr.write("\nvelphi {}-plane\n".format(plane))
 
@@ -167,7 +167,12 @@ def get_velphi(xset, yset, it, reflevel):
     return(np.divide((x*vy)-(y*vx),r))
 
 plane = args.plane
-ref = args.reflevel
+
+if args.reflevel is not None:
+    ref = list(args.reflevel)
+else:
+    ref = 'all'
+
 planes = ["xy", "xz", "yz"]
 if plane=='all':
     sys.stderr.write("Plotting for all planes ... \n")
