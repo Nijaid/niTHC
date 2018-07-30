@@ -21,7 +21,7 @@ parser = argparse.ArgumentParser(description=
 parser.add_argument("plane", type=str, help=
         "Plane centered at the origin. 'all' plots all three planes.")
 parser.add_argument("--reflevel", nargs='*', type=int,
-        help="Choose reflevel to plot. Default are all levels.")
+        help="Choose reflevel to plot. Default is all levels.")
 
 args = parser.parse_args()
 
@@ -46,6 +46,7 @@ def plot(plane, ref):
 
     reflevels = list(set(xset.select_reflevels(iteration=xset.iterations[0])))
     if ref=='all':
+        pass
     else:
         reflevels = [r for r in ref if r in reflevels]
 
@@ -105,7 +106,7 @@ def plot(plane, ref):
             # Plot the horizon
             if it in horizons.keys():
                 horizon = horizons[it]
-        		hslice = horizon.slice(s=0., axis=hax)
+                hslice = horizon.slice(s=0., axis=hax)
                 art = Ellipse(xy=hslice.center, width=hslice.diam[1],
                         height=hslice.diam[0], edgecolor='black',
                         facecolor='black', alpha=1.0)
