@@ -72,6 +72,10 @@ for p in planes:
         levels = glob("output/{0}_{1}/{2}/r?".format(root, seg, p))
         level_lis.append(set([os.path.basename(x) for x in levels]))
 
+    # Get necessary name length for proper movie making order
+    last_names = [len(os.path.basename(x)) for x in glob("output/{0}_{1}/{2}/r?/*.png").format(root, seg[-1], p)]
+    name_len = np.max(last_names)
+
     # Find the levels covered by all segments
     uber_levels = sorted(list(set.intersection(*level_lis)))
     print("Copying levels: ")
@@ -84,8 +88,10 @@ for p in planes:
         for seg in segments:
             pics = glob("output/{0}_{1}/{2}/{3}/*.png".format(root, seg, p, l))
             for pic in pics:
-                copy(pic, level_dir)
-                
+                # Pad the png filename with zeros if < name_len
+                pic_name = os.path.basename(pic).zfill(name_len)
+                copy(pic, level_dir + "/{0}".format(pic_name))
+
         if movie_bool:
             printer.progress("---> {0} {1} : {2}/movie.mp4".format(root, p, level_dir))
             movie.ffmpeg(level_dir)
