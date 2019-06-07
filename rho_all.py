@@ -76,7 +76,6 @@ for p in planes:
     uber_levels = sorted(list(set.intersection(*level_lis)))
     print("Copying levels: ")
     print(uber_levels)
-    print("\n")
 
     for l in uber_levels:
         level_dir = "output/{0}_all/{1}/{2}".format(root, p, l)
@@ -89,5 +88,5 @@ for p in planes:
                 
         if movie_bool:
             printer.progress("---> {0} {1} : {2}/movie.mp4".format(root, p, level_dir))
-            movie(level_dir)
-            printer.final("---> {0} {1} : movies done!".format(root, p))
+            movie.ffmpeg(level_dir)
+            printer.final("---> {0} {1} {2} : movies done!".format(root, p, l))
