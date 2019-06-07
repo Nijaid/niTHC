@@ -1,7 +1,7 @@
 import argparse
 parser = argparse.ArgumentParser(description=
          "Plot rho for all segments.")
-parser.add_argument("--skip", "-s", nargs="*", type=string,
+parser.add_argument("--skip", "-s", nargs="*", type=str,
         help="Skip specific segments (format: ####).")
 args = parser.parse_args()
 
@@ -10,7 +10,7 @@ import os
 if all(os.getcwd() != s for s in sys.path):
     sys.path = [os.getcwd()] + sys.path
 
-import shutil.copy
+from shutil import copy
 
 import config.base
 import config.rho
@@ -31,7 +31,7 @@ scivis.config.options['base.makemovies'] = False
 
 # Get output directories
 from glob import glob
-segments = [int(x[-4:]) for x in sorted(glob("output-????"))]
+segments = [x[-4:] for x in sorted(glob("../output-????"))]
 segments = [x for x in segments if x not in args.skip]
 
 # Plot each segment
@@ -84,7 +84,7 @@ for p in planes:
         level_dir = "output/%s/%s/%s"%(root, p, l)
         mkdir(level_dir)
         for seg in segments:
-            shutil.copy("output/{0}_{1}/{2}/{3}/*.png".format(root, seg, p, l),
+            copy("output/{0}_{1}/{2}/{3}/*.png".format(root, seg, p, l),
                         level_dir)
         if movie_bool:
             printer.progress("---> {0} {1} : {2}/movie.mp4".format(root, p, level_dir))
