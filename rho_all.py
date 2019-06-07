@@ -73,8 +73,8 @@ for p in planes:
         level_lis.append(set([os.path.basename(x) for x in levels]))
 
     # Get necessary name length for proper movie making order
-    last_names = [len(os.path.basename(x)) for x in glob("output/{0}_{1}/{2}/r?/*.png").format(root, seg[-1], p)]
-    name_len = np.max(last_names)
+    last_names = [len(os.path.basename(x)) for x in glob("output/{0}_{1}/{2}/r?/*.png".format(root, segments[-1], p))]
+    name_len = max(last_names)
 
     # Find the levels covered by all segments
     uber_levels = sorted(list(set.intersection(*level_lis)))
