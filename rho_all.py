@@ -35,19 +35,19 @@ segments = [x[-4:] for x in sorted(glob("../output-????"))]
 segments = [x for x in segments if x not in args.skip]
 
 # Plot each segment
-# for seg in segments:
-#     print("*** %s ***"%seg)
-#
-#     scivis.config.options['base.datapath'] = "../output-%s/data/"%seg
-#
-#     if scivis.config.options['rho.massflux']:
-#         VectorColorMap2D(
-#                 ScalarData2D(Density()),
-#                 VectorData2D(MassFlux()),
-#                 "rho_%s"%seg
-#         ).run()
-#     else:
-#         ColorMap2D(ScalarData2D(Density()), "rho_%s"%seg).run()
+for seg in segments:
+    print("*** %s ***"%seg)
+
+    scivis.config.options['base.datapath'] = "../output-%s/data/"%seg
+
+    if scivis.config.options['rho.massflux']:
+        VectorColorMap2D(
+                ScalarData2D(Density()),
+                VectorData2D(MassFlux()),
+                "rho_%s"%seg
+        ).run()
+    else:
+        ColorMap2D(ScalarData2D(Density()), "rho_%s"%seg).run()
 
 # Setup directories for all images
 root = 'rho'
