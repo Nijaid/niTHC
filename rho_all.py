@@ -35,41 +35,39 @@ segments = [x[-4:] for x in sorted(glob("../output-????"))]
 segments = [x for x in segments if x not in args.skip]
 
 # Plot each segment
-for seg in segments:
-    print("*** %s ***\n"%seg)
-
-    # Make output directory structure for segment
-    # mkdir(data_dir + "uber_analysis/")
-    # mkdir(data_dir + "uber_analysis/output")
-    # mkdir(data_dir + "uber_analysis/log")
-
-    scivis.config.options['base.datapath'] = "../output-%s/data/"%seg
-
-    if scivis.config.options['rho.massflux']:
-        VectorColorMap2D(
-                ScalarData2D(Density()),
-                VectorData2D(MassFlux()),
-                "rho_%s"%seg
-        ).run()
-    else:
-        ColorMap2D(ScalarData2D(Density()), "rho_%s"%seg).run()
+# for seg in segments:
+#     print("*** %s ***"%seg)
+#
+#     scivis.config.options['base.datapath'] = "../output-%s/data/"%seg
+#
+#     if scivis.config.options['rho.massflux']:
+#         VectorColorMap2D(
+#                 ScalarData2D(Density()),
+#                 VectorData2D(MassFlux()),
+#                 "rho_%s"%seg
+#         ).run()
+#     else:
+#         ColorMap2D(ScalarData2D(Density()), "rho_%s"%seg).run()
 
 # Setup directories for all images
-planes = scivis.config.options['plot.planes']
-for p in planes:
-    mkdir("output/rho/%s"%p)
-
 root = 'rho'
 if scivis.config.options['plot.scale'] == 'log':
     root = 'log_' + root
 elif scivis.config.options['plot.scale'] == 'log_abs':
     root = 'log_abs_' + root
 
+# Make directories for each plane
+planes = scivis.config.options['plot.planes']
+for p in planes:
+    mkdir("output/{0}_all".format(root))
+    mkdir("output/{0}_all/{1}".format(root, p))
+
 # Copy each segment's images into a single directory
 # for each reflevel that is included across all segments.
 for p in planes:
     print("For %s:"%p)
     level_lis = []
+    # Get each level in each segment
     for seg in segments:
         levels = glob("output/{0}_{1}/{2}/r?".format(root, seg, p))
         level_lis.append(set([os.path.basename(x) for x in levels]))
@@ -81,11 +79,14 @@ for p in planes:
     print("\n")
 
     for l in uber_levels:
-        level_dir = "output/%s/%s/%s"%(root, p, l)
+        level_dir = "output/{0}_all/{1}/{2}".format(root, p, l)
         mkdir(level_dir)
+
         for seg in segments:
-            copy("output/{0}_{1}/{2}/{3}/*.png".format(root, seg, p, l),
-                        level_dir)
+            pics = glob("output/{0}_{1}/{2}/{3}/*.png".format(root, seg, p, l))
+            for pic in pics:
+                copy(pic, level_dir)
+                
         if movie_bool:
             printer.progress("---> {0} {1} : {2}/movie.mp4".format(root, p, level_dir))
             movie(level_dir)
